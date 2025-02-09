@@ -1,30 +1,61 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="app">
+    <div class="spotlight"></div>
+    <Header />
+    <main>
+      <router-view v-slot="{ Component }">
+        <component :is="Component" />
+      </router-view>
+    </main>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<script setup lang="ts">
+import Header from './components/Header.vue'
+import { onMounted, onUnmounted } from 'vue'
+
+const handleMouseMove = (e: MouseEvent) => {
+  const spotlight = document.querySelector('.spotlight') as HTMLElement;
+  if (spotlight) {
+    const x = e.clientX;
+    const y = e.clientY;
+    spotlight.style.background = `
+      radial-gradient(
+        250px circle at ${x}px ${y}px,
+        rgba(129, 140, 248, 0.5),
+        rgba(129, 140, 248, 0.2) 25%,
+        transparent 50%
+      )
+    `;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('mousemove', handleMouseMove);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('mousemove', handleMouseMove);
+});
+</script>
+
+<style>
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+header {
+  position: relative;
+  z-index: 10;
 }
 </style>
