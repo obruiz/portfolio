@@ -1,109 +1,211 @@
 :root {
-  scroll-behavior: auto;
-  overflow: hidden;
-  --background-color: #0f172a;
-  --text-color: #e2e8f0;
-  --primary-color: #818cf8;
-  --secondary-color: #4f46e5;
+  /* VS Code Theme - Light */
+  --vscode-bg: #ffffff;
+  --vscode-sidebar-bg: #f3f3f3;
+  --vscode-activitybar-bg: #2c2c2c;
+  --vscode-editor-bg: #ffffff;
+  --vscode-tab-bg: #ececec;
+  --vscode-tab-active-bg: #ffffff;
+  --vscode-statusbar-bg: #007acc;
+  --vscode-border: #e5e5e5;
+  --vscode-text: #3b3b3b;
+  --vscode-text-secondary: #6c6c6c;
+  --vscode-accent: #007acc;
+  --vscode-accent-hover: #005a9e;
+  --vscode-icon-color: #cccccc;
+  --vscode-terminal-bg: #1e1e1e;
+  --vscode-terminal-text: #cccccc;
+  --vscode-git-added: #587c0c;
+  --vscode-git-modified: #895503;
+  --vscode-git-deleted: #ad0707;
+}
+
+body.dark {
+  /* VS Code Theme - Dark */
+  --vscode-bg: #1e1e1e;
+  --vscode-sidebar-bg: #252526;
+  --vscode-activitybar-bg: #333333;
+  --vscode-editor-bg: #1e1e1e;
+  --vscode-tab-bg: #2d2d2d;
+  --vscode-tab-active-bg: #1e1e1e;
+  --vscode-statusbar-bg: #007acc;
+  --vscode-border: #3e3e42;
+  --vscode-text: #cccccc;
+  --vscode-text-secondary: #858585;
+  --vscode-accent: #007acc;
+  --vscode-accent-hover: #005a9e;
+  --vscode-icon-color: #858585;
+  --vscode-terminal-bg: #1e1e1e;
+  --vscode-terminal-text: #cccccc;
+  --vscode-git-added: #81b88b;
+  --vscode-git-modified: #e2c08d;
+  --vscode-git-deleted: #f48771;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
+  background-image: none !important;
+}
+
+/* Eliminar CUALQUIER imagen de fondo en todo el documento */
+* {
+  background-image: none !important;
+}
+
+*::before,
+*::after {
+  background-image: none !important;
+}
+
+div,
+section,
+article,
+main,
+aside,
+header,
+footer,
+nav {
+  background-image: none !important;
+}
+
+div::before,
+div::after,
+section::before,
+section::after {
+  background-image: none !important;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  font-family: 'Outfit', sans-serif;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  position: relative;
-  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--vscode-bg) !important;
+  background-image: none !important;
+  background: var(--vscode-bg) !important;
+  color: var(--vscode-text);
+  line-height: 1.6;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  overflow: hidden;
+  font-size: 13px;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
+body.monospaced {
+  font-family: 'Consolas', 'Courier New', Courier, monospace;
+}
+
+html, body {
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    125deg,
-    rgba(79, 70, 229, 0.05) 0%,
-    rgba(129, 140, 248, 0.05) 50%,
-    rgba(38, 140, 245, 0.05) 100%
-  );
-  animation: gradientMove 15s ease infinite;
-  z-index: -1;
+  background-image: none !important;
+  background: var(--vscode-bg) !important;
+  background-color: var(--vscode-bg) !important;
 }
 
+html::before,
+html::after,
+body::before,
 body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(79, 70, 229, 0.05) 0%,
-    rgba(129, 140, 248, 0.03) 50%,
-    transparent 100%
-  );
-  animation: pulseGradient 10s ease-in-out infinite;
-  z-index: -1;
-}
-
-@keyframes gradientMove {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes pulseGradient {
-  0% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-}
-
-body.dark {
-  background-color: #111827;
-  color: #ffffff;
-}
-
-section {
-  scroll-margin-top: 4rem;
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  background-image: none !important;
 }
 
 #app {
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--vscode-bg) !important;
+  background-image: none !important;
   position: relative;
-  z-index: 2;
 }
 
-.spotlight {
-  position: fixed;
-  top: 0;
-  left: 0;
+#app::before,
+#app::after {
+  display: none !important;
+  content: none !important;
+}
+
+a {
+  color: var(--vscode-accent);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--vscode-accent-hover);
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Restringir tamaño de todos los SVG */
+svg {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+/* Asegurar que los iconos nunca crezcan más allá de su contenedor */
+.icon svg,
+.activity-icon svg,
+[class*="icon"] svg {
   width: 100%;
   height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  transition: background 0.1s ease;
-  mix-blend-mode: overlay;
-  opacity: 0.85;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vscode-sidebar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vscode-icon-color);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-text-secondary);
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 } 
