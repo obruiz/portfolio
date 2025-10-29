@@ -1,18 +1,21 @@
 <template>
   <div class="ai-assistant" :class="{ 'collapsed': isCollapsed }">
-    <!-- Toggle Button (siempre visible) -->
-    <button 
-      class="toggle-button" 
-      @click="toggleCollapse"
-      :title="isCollapsed ? 'Abrir asistente' : 'Cerrar asistente'"
-    >
-      <svg v-if="isCollapsed" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+    <!-- Header con título y botón -->
+    <div class="assistant-topbar">
+      <span class="chat-title">Chat</span>
+      <button 
+        class="toggle-button" 
+        @click="toggleCollapse"
+        :title="isCollapsed ? 'Abrir asistente' : 'Cerrar asistente'"
+      >
+        <svg v-if="isCollapsed" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
 
     <!-- Assistant Content -->
     <div class="assistant-content">
@@ -175,32 +178,60 @@ const sendMessage = async () => {
   display: none;
 }
 
+.assistant-topbar {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--vscode-border);
+  flex-shrink: 0;
+  background: var(--vscode-sidebar-bg);
+}
+
+.chat-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vscode-text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ai-assistant.collapsed .chat-title {
+  display: none;
+}
+
+.ai-assistant.collapsed .assistant-topbar {
+  justify-content: center;
+  padding: 0;
+}
+
 .toggle-button {
   position: relative;
   left: 0;
   top: 0;
-  width: 100%;
-  height: 48px;
+  width: 24px;
+  height: 24px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--vscode-border);
-  color: var(--vscode-text-secondary);
+  color: var(--vscode-icon-color);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
   flex-shrink: 0;
+  border-radius: 4px;
 }
 
 .toggle-button:hover {
   background: var(--vscode-editor-bg);
-  color: var(--vscode-accent);
+  color: var(--vscode-text);
 }
 
 .toggle-button svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .assistant-content {

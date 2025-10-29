@@ -29,8 +29,8 @@
           class="project-row"
           :class="{ 'reverse': index % 2 === 1 }"
         >
-          <!-- Contenido del proyecto -->
-          <div class="project-content">
+          <!-- Tarjeta con contenido del proyecto -->
+          <div class="project-card">
             <div class="project-number">{{ String(index + 1).padStart(2, '0') }}</div>
             <h3 class="project-title">{{ project.title }}</h3>
             <p class="project-description">{{ project.description }}</p>
@@ -65,10 +65,12 @@
             </div>
           </div>
 
-          <!-- Imagen del proyecto -->
+          <!-- Contenedor de imagen (sobresale por encima) -->
           <div class="project-image-container">
-            <div class="project-image" v-if="project.image">
-              <img :src="project.image" :alt="project.title" />
+            <div class="project-image-wrapper">
+              <div class="project-image" v-if="project.image">
+                <img :src="project.image" :alt="project.title" />
+              </div>
             </div>
           </div>
         </div>
@@ -239,29 +241,72 @@ onMounted(() => {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 120px;
+  gap: 40px;
+  padding: 0 20px;
 }
 
 .project-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
+  display: flex;
   align-items: center;
+  gap: 40px;
   position: relative;
+  padding: 0;
+  width: 100%;
 }
 
 .project-row.reverse {
-  direction: rtl;
+  flex-direction: row-reverse;
 }
 
-.project-row.reverse > * {
-  direction: ltr;
-}
-
-.project-content {
+/* === ESTILOS DE LA TARJETA DE TEXTO === */
+.project-card {
+  flex: 0 0 55%;
+  background: var(--vscode-sidebar-bg);
+  border: 1px solid var(--vscode-border);
+  border-radius: 12px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.3);
+}
+
+/* === ESTILOS DEL CONTENEDOR DE IMAGEN === */
+.project-image-container {
+  flex: 0 0 45%;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin-left: -60px;
+}
+
+.project-row.reverse .project-image-container {
+  margin-left: 0;
+  margin-right: -60px;
+}
+
+.project-image-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.project-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.5);
+}
+
+.project-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .project-number {
@@ -272,15 +317,15 @@ onMounted(() => {
 }
 
 .project-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--vscode-text);
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
 .project-description {
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--vscode-text-secondary);
   margin: 0;
@@ -290,30 +335,22 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 8px;
 }
 
 .tech-tag {
-  padding: 6px 16px;
-  background: var(--vscode-sidebar-bg);
+  padding: 8px 16px;
+  background: transparent;
   border: 1px solid var(--vscode-border);
   border-radius: 20px;
   font-size: 13px;
   color: var(--vscode-accent);
   font-weight: 500;
-  transition: all 0.2s;
-}
-
-.tech-tag:hover {
-  background: var(--vscode-accent);
-  color: #ffffff;
-  transform: translateY(-2px);
 }
 
 .project-actions {
   display: flex;
-  gap: 16px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .action-button {
@@ -336,23 +373,10 @@ onMounted(() => {
   border: 2px solid var(--vscode-accent);
 }
 
-.action-button.primary:hover {
-  background: transparent;
-  color: var(--vscode-accent);
-  transform: translateY(-2px);
-}
-
 .action-button.secondary {
   background: transparent;
   color: var(--vscode-text);
   border: 2px solid var(--vscode-border);
-}
-
-.action-button.secondary:hover {
-  background: var(--vscode-border);
-  border-color: var(--vscode-accent);
-  color: var(--vscode-accent);
-  transform: translateY(-2px);
 }
 
 .action-button :deep(svg) {
@@ -363,53 +387,6 @@ onMounted(() => {
   min-height: 18px;
   max-height: 18px;
   display: block;
-}
-
-.project-image-container {
-  position: relative;
-}
-
-.project-image {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  transition: all 0.4s ease;
-}
-
-.project-image::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, var(--vscode-accent) 0%, transparent 100%);
-  opacity: 0.1;
-  transition: opacity 0.3s;
-  z-index: 1;
-}
-
-.project-row:hover .project-image {
-  transform: translateY(-8px);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
-}
-
-.project-row:hover .project-image::before {
-  opacity: 0.2;
-}
-
-.project-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.project-row:hover .project-image img {
-  transform: scale(1.05);
 }
 
 .empty-state {
@@ -450,48 +427,5 @@ onMounted(() => {
   font-size: 14px;
   color: var(--vscode-text-secondary);
   margin: 0;
-}
-
-@media (max-width: 768px) {
-  .projects-content {
-    padding: 40px 20px;
-  }
-
-  .projects-list {
-    gap: 80px;
-  }
-
-  .project-row {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-
-  .project-row.reverse {
-    direction: ltr;
-  }
-
-  .project-title {
-    font-size: 24px;
-  }
-
-  .project-description {
-    font-size: 14px;
-  }
-
-  .project-actions {
-    flex-direction: column;
-  }
-
-  .action-button {
-    width: 100%;
-  }
-
-  .projects-header {
-    padding: 20px 16px;
-  }
-
-  .header-title {
-    font-size: 20px;
-  }
 }
 </style>
