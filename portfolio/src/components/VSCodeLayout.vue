@@ -38,97 +38,70 @@
       </div>
     </div>
 
-    <!-- Main Editor Area -->
-    <div class="editor-area">
-      <!-- Tabs Bar -->
-      <div class="tabs-bar">
-        <div class="tabs-container">
-          <div 
-            v-for="tab in tabs" 
-            :key="tab.path"
-            class="tab"
-            :class="{ active: $route.path === tab.path }"
-            @click="navigateTo(tab.path)"
-          >
-            <component :is="tab.icon" class="tab-icon" />
-            <span class="tab-label">{{ tab.label }}</span>
-            <span v-if="tab.modified" class="tab-modified">●</span>
-            <button class="tab-close" @click.stop="closeTab(tab.path)">
+    <!-- Main Content Area (Editor + AI Assistant) -->
+    <div class="main-content">
+      <!-- Main Editor Area -->
+      <div class="editor-area">
+        <!-- Tabs Bar -->
+        <div class="tabs-bar">
+          <div class="tabs-container">
+            <div 
+              v-for="tab in tabs" 
+              :key="tab.path"
+              class="tab"
+              :class="{ active: $route.path === tab.path }"
+              @click="navigateTo(tab.path)"
+            >
+              <component :is="tab.icon" class="tab-icon" />
+              <span class="tab-label">{{ tab.label }}</span>
+              <span v-if="tab.modified" class="tab-modified">●</span>
+              <button class="tab-close" @click.stop="closeTab(tab.path)">
+                <IconClose />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Breadcrumbs -->
+        <div class="breadcrumbs">
+          <IconFolder class="breadcrumb-icon" />
+          <span class="breadcrumb">portfolio</span>
+          <IconChevron direction="right" class="breadcrumb-separator" />
+          <span class="breadcrumb">src</span>
+          <IconChevron direction="right" class="breadcrumb-separator" />
+          <span class="breadcrumb active">{{ currentFile }}</span>
+        </div>
+
+        <!-- Editor Content -->
+        <div class="editor-content">
+          <slot></slot>
+        </div>
+
+        <!-- Panel (Terminal/Output) -->
+        <div class="panel" v-if="panelVisible">
+          <div class="panel-header">
+            <div class="panel-tabs">
+              <div class="panel-tab active">
+                <IconTerminal />
+                <span>TERMINAL</span>
+              </div>
+              <div class="panel-tab">
+                <IconOutput />
+                <span>OUTPUT</span>
+              </div>
+            </div>
+            <button class="icon-button" @click="panelVisible = false">
               <IconClose />
             </button>
           </div>
-        </div>
-      </div>
-
-      <!-- Breadcrumbs -->
-      <div class="breadcrumbs">
-        <IconFolder class="breadcrumb-icon" />
-        <span class="breadcrumb">portfolio</span>
-        <IconChevron direction="right" class="breadcrumb-separator" />
-        <span class="breadcrumb">src</span>
-        <IconChevron direction="right" class="breadcrumb-separator" />
-        <span class="breadcrumb active">{{ currentFile }}</span>
-      </div>
-
-      <!-- Editor Content -->
-      <div class="editor-content">
-        <slot></slot>
-      </div>
-
-      <!-- Panel (Terminal/Output) -->
-      <div class="panel" v-if="panelVisible">
-        <div class="panel-header">
-          <div class="panel-tabs">
-            <div class="panel-tab active">
-              <IconTerminal />
-              <span>TERMINAL</span>
-            </div>
-            <div class="panel-tab">
-              <IconOutput />
-              <span>OUTPUT</span>
-            </div>
+          <div class="panel-content">
+            <slot name="terminal"></slot>
           </div>
-          <button class="icon-button" @click="panelVisible = false">
-            <IconClose />
-          </button>
-        </div>
-        <div class="panel-content">
-          <slot name="terminal"></slot>
         </div>
       </div>
-    </div>
 
-    <!-- Status Bar -->
-    <div class="status-bar">
-      <div class="status-left">
-        <div class="status-item">
-          <IconGitBranch />
-          <span>main</span>
-        </div>
-        <div class="status-item">
-          <IconSync />
-        </div>
-        <div class="status-item clickable" @click="panelVisible = !panelVisible">
-          <IconWarning />
-          <span>0</span>
-          <IconError />
-          <span>0</span>
-        </div>
-      </div>
-      <div class="status-right">
-        <div class="status-item">
-          <span>Ln 1, Col 1</span>
-        </div>
-        <div class="status-item">
-          <span>Spaces: 2</span>
-        </div>
-        <div class="status-item">
-          <span>UTF-8</span>
-        </div>
-        <div class="status-item">
-          <span>Vue</span>
-        </div>
-      </div>
+      <!-- AI Assistant (Right Sidebar) -->
+      <AIAssistant />
     </div>
   </div>
 </template>
@@ -149,12 +122,9 @@ import IconFolder from './icons/IconFolder.vue'
 import IconFile from './icons/IconFile.vue'
 import IconTerminal from './icons/IconTerminal.vue'
 import IconOutput from './icons/IconOutput.vue'
-import IconGitBranch from './icons/IconGitBranch.vue'
-import IconSync from './icons/IconSync.vue'
-import IconWarning from './icons/IconWarning.vue'
-import IconError from './icons/IconError.vue'
 import ExplorerView from './ExplorerView.vue'
 import SourceControlView from './SourceControlView.vue'
+import AIAssistant from './AIAssistant.vue'
 
 defineProps<{
   isDark: boolean
@@ -335,9 +305,16 @@ const closeTab = (path: string) => {
 }
 
 .sidebar.collapsed {
-  width: 0;
-  overflow: hidden;
-  border-right: none;
+  width: 40px;
+  min-width: 40px;
+}
+
+.sidebar.collapsed .sidebar-content {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-title {
+  display: none;
 }
 
 .sidebar-header {
@@ -345,8 +322,14 @@ const closeTab = (path: string) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px 0 20px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--vscode-border);
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0;
 }
 
 .sidebar-title {
@@ -389,6 +372,14 @@ const closeTab = (path: string) => {
   content: none !important;
 }
 
+/* Main Content (Editor + AI Assistant) */
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
 /* Editor Area */
 .editor-area {
   flex: 1;
@@ -397,6 +388,7 @@ const closeTab = (path: string) => {
   overflow: hidden;
   background: var(--vscode-editor-bg);
   position: relative;
+  transition: flex 0.3s ease;
 }
 
 /* Tabs Bar */
@@ -408,6 +400,7 @@ const closeTab = (path: string) => {
   align-items: flex-end;
   overflow-x: auto;
   overflow-y: hidden;
+  flex-shrink: 0;
 }
 
 .tabs-bar::-webkit-scrollbar {
@@ -417,21 +410,23 @@ const closeTab = (path: string) => {
 .tabs-container {
   display: flex;
   height: 100%;
+  align-items: stretch;
 }
 
 .tab {
   height: 35px;
-  min-width: 120px;
-  max-width: 200px;
+  min-width: 100px;
+  max-width: 180px;
   background: var(--vscode-tab-bg);
   border-right: 1px solid var(--vscode-border);
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 12px;
   gap: 6px;
   cursor: pointer;
   color: var(--vscode-text-secondary);
   transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
 }
 
 .tab:hover {
@@ -444,10 +439,28 @@ const closeTab = (path: string) => {
   border-bottom: 1px solid var(--vscode-accent);
 }
 
+.tab-icon {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  max-width: 16px;
+  min-height: 16px;
+  max-height: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .tab-icon :deep(svg) {
   width: 16px;
   height: 16px;
+  min-width: 16px;
+  max-width: 16px;
+  min-height: 16px;
+  max-height: 16px;
   flex-shrink: 0;
+  display: block;
 }
 
 .tab-label {
@@ -456,6 +469,7 @@ const closeTab = (path: string) => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
+  min-width: 0;
 }
 
 .tab-modified {
@@ -463,6 +477,7 @@ const closeTab = (path: string) => {
   font-size: 20px;
   line-height: 1;
   margin-left: -4px;
+  flex-shrink: 0;
 }
 
 .tab-close {
@@ -473,6 +488,11 @@ const closeTab = (path: string) => {
   justify-content: center;
   color: var(--vscode-icon-color);
   transition: opacity 0.1s, color 0.1s;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  max-width: 16px;
+  flex-shrink: 0;
 }
 
 .tab:hover .tab-close {
@@ -486,6 +506,9 @@ const closeTab = (path: string) => {
 .tab-close :deep(svg) {
   width: 12px;
   height: 12px;
+  min-width: 12px;
+  max-width: 12px;
+  display: block;
 }
 
 /* Breadcrumbs */
@@ -496,16 +519,30 @@ const closeTab = (path: string) => {
   display: flex;
   align-items: center;
   padding: 0 12px;
-  gap: 4px;
+  gap: 2px;
   font-size: 12px;
   color: var(--vscode-text-secondary);
   flex-shrink: 0;
 }
 
+.breadcrumb-icon {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  max-width: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .breadcrumb-icon :deep(svg) {
   width: 14px;
   height: 14px;
+  min-width: 14px;
+  max-width: 14px;
   flex-shrink: 0;
+  display: block;
 }
 
 .breadcrumb {
@@ -513,6 +550,7 @@ const closeTab = (path: string) => {
   transition: color 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  padding: 0 2px;
 }
 
 .breadcrumb:hover {
@@ -524,11 +562,26 @@ const closeTab = (path: string) => {
   font-weight: 500;
 }
 
-.breadcrumb-separator :deep(svg) {
+.breadcrumb-separator {
   width: 12px;
   height: 12px;
+  min-width: 12px;
+  max-width: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 2px;
+}
+
+.breadcrumb-separator :deep(svg) {
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  max-width: 10px;
   flex-shrink: 0;
   opacity: 0.6;
+  display: block;
 }
 
 /* Editor Content */
@@ -619,53 +672,12 @@ const closeTab = (path: string) => {
   font-size: 13px;
 }
 
-/* Status Bar */
-.status-bar {
-  height: 22px;
-  background: var(--vscode-statusbar-bg);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 10px;
-  font-size: 12px;
-}
-
-.status-left,
-.status-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 6px;
-  height: 100%;
-}
-
-.status-item.clickable {
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.status-item.clickable:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.status-item :deep(svg) {
-  width: 14px;
-  height: 14px;
-}
-
 @media (max-width: 768px) {
   .sidebar {
     position: absolute;
     left: 48px;
     top: 0;
-    bottom: 22px;
+    bottom: 0;
     z-index: 90;
   }
 

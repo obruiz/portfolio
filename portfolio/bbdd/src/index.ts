@@ -303,6 +303,72 @@ class PortfolioHandler {
 	}
 }
 
+class ImagesHandler {
+	static async upload(request: Request, env: Env): Promise<Response> {
+		if (!isAuthenticated(request, env)) {
+			return createErrorResponse('No autorizado', 401);
+		}
+
+		try {
+			const formData = await request.formData();
+			const file = formData.get('file');
+			
+			if (!file || !(file instanceof File)) {
+				return createErrorResponse('No se proporcionó ningún archivo');
+			}
+
+			// Validar tipo de archivo
+			if (!file.type.startsWith('image/')) {
+				return createErrorResponse('El archivo debe ser una imagen');
+			}
+
+			// Validar tamaño (máximo 5MB)
+			const maxSize = 5 * 1024 * 1024; // 5MB
+			if (file.size > maxSize) {
+				return createErrorResponse('El archivo es demasiado grande (máximo 5MB)');
+			}
+
+			// Generar nombre único para el archivo
+			const extension = file.name.split('.').pop() || 'jpg';
+			const fileName = `${Date.now()}-${generateId()}.${extension}`;
+
+			// Subir a R2
+			await env.PORTFOLIO_IMAGES.put(fileName, file.stream(), {
+				httpMetadata: {
+					contentType: file.type,
+				},
+			});
+
+			// URL pública del bucket R2
+			const imageUrl = `https://pub-f75c832d17fc4f15817972bc8d453f5d.r2.dev/${fileName}`;
+
+			return createResponse({
+				url: imageUrl,
+				fileName,
+				size: file.size,
+				type: file.type,
+			}, 201);
+		} catch (error) {
+			console.error('Error uploading image:', error);
+			return createErrorResponse('Error al subir la imagen');
+		}
+	}
+
+	static async delete(request: Request, fileName: string, env: Env): Promise<Response> {
+		if (!isAuthenticated(request, env)) {
+			return createErrorResponse('No autorizado', 401);
+		}
+
+		try {
+			await env.PORTFOLIO_IMAGES.delete(fileName);
+			return createResponse({ message: 'Imagen eliminada exitosamente' });
+		} catch (error) {
+			console.error('Error deleting image:', error);
+			return createErrorResponse('Error al eliminar la imagen');
+		}
+	}
+}
+
 // Router principal
 async function handleRequest(request: Request, env: Env): Promise<Response> {
 	const url = new URL(request.url);
@@ -397,6 +463,22 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 		if (path === '/api/portfolio') {
 			if (method === 'GET') {
 				return await PortfolioHandler.get(storage);
+			}
+			return createErrorResponse('Método no permitido', 405);
+		}
+
+		// Upload de imágenes
+		if (path === '/api/images/upload') {
+			if (method === 'POST') {
+				return await ImagesHandler.upload(request, env);
+			}
+			return createErrorResponse('Método no permitido', 405);
+		}
+
+		if (path.startsWith('/api/images/')) {
+			const fileName = path.split('/')[3];
+			if (method === 'DELETE') {
+				return await ImagesHandler.delete(request, fileName, env);
 			}
 			return createErrorResponse('Método no permitido', 405);
 		}

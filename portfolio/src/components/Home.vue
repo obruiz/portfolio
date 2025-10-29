@@ -119,7 +119,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { apiService, type Profile } from '../services/api'
+import { apiService, type Profile, type Project } from '../services/api'
 import IconFolder from './icons/IconFolder.vue'
 import IconFile from './icons/IconFile.vue'
 import IconTerminal from './icons/IconTerminal.vue'
@@ -129,23 +129,17 @@ import IconChevron from './icons/IconChevron.vue'
 
 // Estado reactivo
 const profile = ref<Profile | null>(null)
-
-const projects = ref([
-  { id: 1, name: 'E-commerce Platform' },
-  { id: 2, name: 'Task Manager' },
-  { id: 3, name: 'Weather Dashboard' },
-  { id: 4, name: 'Portfolio Redesign' }
-])
+const projects = ref<Project[]>([])
 
 const skills = ref([
-  { name: 'Vue.js', icon: '⚡', color: '#42b883' },
-  { name: 'TypeScript', icon: '📘', color: '#007acc' },
-  { name: 'Node.js', icon: '🟢', color: '#68a063' },
-  { name: 'React', icon: '⚛️', color: '#61dafb' },
-  { name: 'UI/UX', icon: '🎨', color: '#ff6b6b' },
-  { name: 'Git', icon: '🔧', color: '#f05032' },
-  { name: 'Design', icon: '✨', color: '#ffd93d' },
-  { name: 'DevOps', icon: '🚀', color: '#00d9ff' }
+  { name: 'Vue.js', icon: '{ }', color: 'var(--vscode-accent)' },
+  { name: 'TypeScript', icon: 'TS', color: 'var(--vscode-accent)' },
+  { name: 'Node.js', icon: 'JS', color: 'var(--vscode-accent)' },
+  { name: 'React', icon: 'RX', color: 'var(--vscode-accent)' },
+  { name: 'UI/UX', icon: '◆', color: 'var(--vscode-accent)' },
+  { name: 'Git', icon: '⎇', color: 'var(--vscode-accent)' },
+  { name: 'Design', icon: '✦', color: 'var(--vscode-accent)' },
+  { name: 'DevOps', icon: '▲', color: 'var(--vscode-accent)' }
 ])
 
 // Métodos
@@ -167,9 +161,20 @@ const loadProfile = async () => {
   }
 }
 
+const loadProjects = async () => {
+  try {
+    projects.value = await apiService.getProjects()
+  } catch (error) {
+    console.error('Error loading projects:', error)
+    // En caso de error, usar datos por defecto
+    projects.value = []
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   loadProfile()
+  loadProjects()
 })
 </script>
 
@@ -228,6 +233,28 @@ onMounted(() => {
   color: var(--vscode-text-secondary);
   margin-bottom: 32px;
   max-width: 90%;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+}
+
+.description::-webkit-scrollbar {
+  width: 6px;
+}
+
+.description::-webkit-scrollbar-track {
+  background: var(--vscode-editor-bg);
+  border-radius: 3px;
+}
+
+.description::-webkit-scrollbar-thumb {
+  background: var(--vscode-border);
+  border-radius: 3px;
+}
+
+.description::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-accent);
 }
 
 .cta-buttons {

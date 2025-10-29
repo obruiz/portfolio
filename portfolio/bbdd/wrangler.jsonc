@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "bbdd",
+	"name": "portfolio-api",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-08-26",
 	"observability": {
@@ -13,8 +13,15 @@
 	"kv_namespaces": [
 		{
 			"binding": "PORTFOLIO_KV",
-			"id": "292ff5142f224a0aa75caaa5e4e4a53e",
-			"preview_id": "4ced355438b24a92b58042be83982836"
+			"id": "4b5d9536b4e54e93a83c0adea89f4c04",
+			"preview_id": "c747ccff17fc455ba39664ff6e64f820"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "PORTFOLIO_IMAGES",
+			"bucket_name": "frontend",
+			"preview_bucket_name": "frontend"
 		}
 	],
 	"vars": {

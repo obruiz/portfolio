@@ -3,6 +3,9 @@
 // Runtime types generated with workerd@1.20250823.0 2025-08-26 
 declare namespace Cloudflare {
 	interface Env {
+		PORTFOLIO_KV: KVNamespace;
+		PORTFOLIO_IMAGES: R2Bucket;
+		API_KEY: string;
 	}
 }
 interface Env extends Cloudflare.Env {}

@@ -47,7 +47,7 @@ export interface ApiResponse<T = any> {
 }
 
 // Configuración
-const DEFAULT_API_URL = 'https://bbdd.hola-3e2.workers.dev';
+const DEFAULT_API_URL = 'https://portfolio-api.omarbouaoudaruiz.workers.dev';
 
 class ApiService {
   private apiUrl: string;
@@ -174,6 +174,43 @@ class ApiService {
 
   async deleteSkill(id: string): Promise<void> {
     await this.makeRequest(`/api/skills/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Imágenes
+  async uploadImage(file: File): Promise<{ url: string; fileName: string; size: number; type: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const url = `${this.apiUrl}/api/images/upload`;
+    const headers: Record<string, string> = {};
+    
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result: ApiResponse<{ url: string; fileName: string; size: number; type: string }> = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Error al subir imagen');
+    }
+
+    return result.data!;
+  }
+
+  async deleteImage(fileName: string): Promise<void> {
+    await this.makeRequest(`/api/images/${fileName}`, {
       method: 'DELETE',
     });
   }

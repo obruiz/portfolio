@@ -1,150 +1,84 @@
-<template>
-  <div class="projects-git">
-    <div class="editor-toolbar">
-      <div class="toolbar-left">
-        <button class="toolbar-button active">
-          <IconGitBranch />
-          <span>Branches</span>
-        </button>
-        <button class="toolbar-button">
-          <IconCommit />
-          <span>Commits</span>
-        </button>
-        <button class="toolbar-button">
-          <IconTag />
-          <span>Tags</span>
-        </button>
-      </div>
-      <div class="toolbar-right">
-        <button class="toolbar-button" @click="loadProjects">
-          <IconSync />
-        </button>
-      </div>
+﻿<template>
+  <div class="projects-container">
+    <div class="projects-header">
+      <h2 class="header-title">Proyectos</h2>
+      <button class="refresh-button" @click="loadProjects" :disabled="loading">
+        <IconSync />
+      </button>
     </div>
 
-    <div class="git-content">
+    <div class="projects-content">
       <!-- Loading -->
       <div v-if="loading" class="status-message">
         <div class="spinner"></div>
-        <span>Fetching branches...</span>
+        <span>Cargando proyectos...</span>
       </div>
 
       <!-- Error -->
       <div v-else-if="error" class="status-message error">
         <IconError />
         <span>{{ error }}</span>
-        <button @click="loadProjects" class="retry-button">Retry</button>
+        <button @click="loadProjects" class="retry-button">Reintentar</button>
       </div>
 
-      <!-- Projects as Branches -->
-      <div v-else-if="projects.length > 0" class="branches-list">
-        <div class="branch-header">
-          <div class="column branch-col">Branch</div>
-          <div class="column status-col">Status</div>
-          <div class="column commits-col">Commits</div>
-          <div class="column updated-col">Last Updated</div>
-          <div class="column actions-col">Actions</div>
-        </div>
-
+      <!-- Projects List -->
+      <div v-else-if="projects.length > 0" class="projects-list">
         <div 
-          v-for="project in projects" 
+          v-for="(project, index) in projects" 
           :key="project.id"
-          class="branch-row"
-          @click="expandBranch(project.id)"
+          class="project-row"
+          :class="{ 'reverse': index % 2 === 1 }"
         >
-          <div class="branch-info">
-            <div class="column branch-col">
-              <IconChevron 
-                :direction="expandedBranch === project.id ? 'down' : 'right'" 
-                class="expand-icon" 
-              />
-              <IconGitBranch class="branch-icon" />
-              <div class="branch-name-wrapper">
-                <span class="branch-name">feature/{{ slugify(project.title) }}</span>
-                <span class="branch-description">{{ project.description }}</span>
-              </div>
-            </div>
-            <div class="column status-col">
-              <span class="status-badge" :class="getStatusClass(project)">
-                {{ getStatus(project) }}
+          <!-- Contenido del proyecto -->
+          <div class="project-content">
+            <div class="project-number">{{ String(index + 1).padStart(2, '0') }}</div>
+            <h3 class="project-title">{{ project.title }}</h3>
+            <p class="project-description">{{ project.description }}</p>
+            
+            <div v-if="project.technologies.length" class="tech-list">
+              <span v-for="tech in project.technologies" :key="tech" class="tech-tag">
+                {{ tech }}
               </span>
             </div>
-            <div class="column commits-col">
-              <IconCommit class="commit-icon" />
-              <span>{{ Math.floor(Math.random() * 50) + 10 }}</span>
-            </div>
-            <div class="column updated-col">
-              <span>{{ getRelativeTime(project.createdAt) }}</span>
-            </div>
-            <div class="column actions-col">
+
+            <div class="project-actions">
               <a
                 v-if="project.projectUrl"
                 :href="project.projectUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="action-link"
-                @click.stop
-                title="View Live"
+                class="action-button primary"
               >
                 <IconExternal />
+                <span>Ver proyecto</span>
               </a>
               <a
                 v-if="project.githubUrl"
                 :href="project.githubUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="action-link"
-                @click.stop
-                title="View Repository"
+                class="action-button secondary"
               >
                 <IconGithub />
+                <span>Código</span>
               </a>
             </div>
           </div>
 
-          <!-- Expanded Details -->
-          <div v-if="expandedBranch === project.id" class="branch-details">
-            <div class="details-section">
-              <div class="detail-label">Technologies:</div>
-              <div class="tech-list">
-                <span v-for="tech in project.technologies" :key="tech" class="tech-badge">
-                  {{ tech }}
-                </span>
-              </div>
-            </div>
-            <div class="details-section">
-              <div class="detail-label">Recent Commits:</div>
-              <div class="commits-list">
-                <div class="commit-item">
-                  <IconCommit class="commit-dot" />
-                  <div class="commit-info">
-                    <span class="commit-message">feat: Initial implementation</span>
-                    <span class="commit-meta">{{ getYear(project.createdAt) }}</span>
-                  </div>
-                </div>
-                <div class="commit-item">
-                  <IconCommit class="commit-dot" />
-                  <div class="commit-info">
-                    <span class="commit-message">docs: Update README</span>
-                    <span class="commit-meta">{{ getYear(project.createdAt) }}</span>
-                  </div>
-                </div>
-                <div class="commit-item">
-                  <IconCommit class="commit-dot" />
-                  <div class="commit-info">
-                    <span class="commit-message">fix: Bug fixes and improvements</span>
-                    <span class="commit-meta">{{ getYear(project.createdAt) }}</span>
-                  </div>
-                </div>
-              </div>
+          <!-- Imagen del proyecto -->
+          <div class="project-image-container">
+            <div class="project-image" v-if="project.image">
+              <img :src="project.image" :alt="project.title" />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Empty State -->
-      <div v-else class="status-message">
-        <span>No branches found.</span>
+      <div v-else class="empty-state">
+        <IconFolder class="empty-icon" />
+        <h3 class="empty-title">No hay proyectos aún</h3>
+        <p class="empty-text">Los proyectos aparecerán aquí cuando se agreguen.</p>
       </div>
     </div>
   </div>
@@ -153,22 +87,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { apiService, type Project } from '../services/api'
-import IconGitBranch from './icons/IconGitBranch.vue'
-import IconCommit from './icons/IconCommit.vue'
-import IconTag from './icons/IconTag.vue'
 import IconSync from './icons/IconSync.vue'
-import IconChevron from './icons/IconChevron.vue'
 import IconError from './icons/IconError.vue'
 import IconExternal from './icons/IconExternal.vue'
 import IconGithub from './icons/IconGithub.vue'
+import IconFolder from './icons/IconFolder.vue'
 
-// Estado reactivo
 const projects = ref<Project[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
-const expandedBranch = ref<string | null>(null)
 
-// Métodos
 const loadProjects = async () => {
   try {
     loading.value = true
@@ -182,107 +110,72 @@ const loadProjects = async () => {
   }
 }
 
-const expandBranch = (id: string) => {
-  expandedBranch.value = expandedBranch.value === id ? null : id
-}
-
-const slugify = (text: string) => {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-}
-
-const getStatus = (project: Project) => {
-  return project.projectUrl ? 'merged' : 'active'
-}
-
-const getStatusClass = (project: Project) => {
-  return project.projectUrl ? 'merged' : 'active'
-}
-
-const getYear = (dateString?: string) => {
-  if (!dateString) return new Date().getFullYear()
-  return new Date(dateString).getFullYear()
-}
-
-const getRelativeTime = (dateString?: string) => {
-  if (!dateString) return 'recently'
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
-  if (days === 0) return 'today'
-  if (days === 1) return 'yesterday'
-  if (days < 7) return `${days} days ago`
-  if (days < 30) return `${Math.floor(days / 7)} weeks ago`
-  if (days < 365) return `${Math.floor(days / 30)} months ago`
-  return `${Math.floor(days / 365)} years ago`
-}
-
-// Lifecycle
 onMounted(() => {
   loadProjects()
 })
 </script>
 
 <style scoped>
-.projects-git {
+.projects-container {
   height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--vscode-editor-bg);
 }
 
-.editor-toolbar {
+.projects-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
+  padding: 24px 32px;
   border-bottom: 1px solid var(--vscode-border);
-  background: var(--vscode-editor-bg);
 }
 
-.toolbar-left,
-.toolbar-right {
-  display: flex;
-  gap: 4px;
+.header-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--vscode-text);
+  margin: 0;
 }
 
-.toolbar-button {
+.refresh-button {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background: none;
-  border: none;
-  border-radius: 4px;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
   color: var(--vscode-text-secondary);
-  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.toolbar-button:hover {
+.refresh-button:hover:not(:disabled) {
   background: var(--vscode-border);
-  color: var(--vscode-text);
+  color: var(--vscode-accent);
 }
 
-.toolbar-button.active {
-  background: var(--vscode-border);
-  color: var(--vscode-text);
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.toolbar-button :deep(svg) {
-  width: 16px;
-  height: 16px;
+.refresh-button :deep(svg) {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  max-width: 18px;
+  min-height: 18px;
+  max-height: 18px;
+  display: block;
 }
 
-.git-content {
+.projects-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 60px 32px;
 }
 
 .status-message {
@@ -290,10 +183,10 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 60px 20px;
+  gap: 16px;
+  padding: 80px 20px;
   color: var(--vscode-text-secondary);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .status-message.error {
@@ -301,14 +194,19 @@ onMounted(() => {
 }
 
 .status-message :deep(svg) {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  max-width: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  display: block;
 }
 
 .spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--vscode-border);
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--vscode-border);
   border-top-color: var(--vscode-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -320,280 +218,280 @@ onMounted(() => {
 
 .retry-button {
   margin-top: 8px;
-  padding: 6px 16px;
-  background: var(--vscode-border);
-  border: none;
-  border-radius: 4px;
-  color: var(--vscode-text);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.retry-button:hover {
+  padding: 8px 20px;
   background: var(--vscode-accent);
+  border: none;
+  border-radius: 6px;
   color: #ffffff;
-}
-
-/* Branches List */
-.branches-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.branch-header {
-  display: flex;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--vscode-border);
-  background: var(--vscode-sidebar-bg);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--vscode-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.column {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.branch-col {
-  flex: 1;
-  min-width: 0;
-}
-
-.status-col {
-  width: 100px;
-  justify-content: center;
-}
-
-.commits-col {
-  width: 100px;
-  justify-content: center;
-}
-
-.updated-col {
-  width: 120px;
-}
-
-.actions-col {
-  width: 80px;
-  justify-content: flex-end;
-}
-
-/* Branch Row */
-.branch-row {
-  border-bottom: 1px solid var(--vscode-border);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.branch-row:hover {
-  background: var(--vscode-sidebar-bg);
-}
-
-.branch-info {
-  display: flex;
-  padding: 12px;
   font-size: 13px;
-}
-
-.expand-icon {
-  color: var(--vscode-icon-color);
-  flex-shrink: 0;
-  transition: transform 0.2s;
-}
-
-.expand-icon :deep(svg) {
-  width: 16px;
-  height: 16px;
-}
-
-.branch-icon {
-  color: var(--vscode-git-modified);
-  flex-shrink: 0;
-}
-
-.branch-icon :deep(svg) {
-  width: 16px;
-  height: 16px;
-}
-
-.branch-name-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.branch-name {
-  font-weight: 600;
-  color: var(--vscode-text);
-  font-family: 'Consolas', 'Courier New', monospace;
-}
-
-.branch-description {
-  font-size: 12px;
-  color: var(--vscode-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.status-badge {
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-badge.active {
-  background: rgba(129, 184, 139, 0.2);
-  color: var(--vscode-git-added);
-}
-
-.status-badge.merged {
-  background: rgba(133, 133, 133, 0.2);
-  color: var(--vscode-text-secondary);
-}
-
-.commit-icon {
-  color: var(--vscode-icon-color);
-}
-
-.commit-icon :deep(svg) {
-  width: 14px;
-  height: 14px;
-}
-
-.action-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  color: var(--vscode-icon-color);
-  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
   transition: all 0.2s;
 }
 
-.action-link:hover {
-  background: var(--vscode-border);
+.retry-button:hover {
+  background: var(--vscode-accent-hover);
+  transform: translateY(-2px);
+}
+
+.projects-list {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+.project-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  position: relative;
+}
+
+.project-row.reverse {
+  direction: rtl;
+}
+
+.project-row.reverse > * {
+  direction: ltr;
+}
+
+.project-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.project-number {
+  font-size: 14px;
+  font-weight: 700;
   color: var(--vscode-accent);
+  letter-spacing: 2px;
 }
 
-.action-link :deep(svg) {
-  width: 16px;
-  height: 16px;
+.project-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--vscode-text);
+  margin: 0;
+  line-height: 1.2;
 }
 
-/* Branch Details */
-.branch-details {
-  padding: 16px;
-  background: var(--vscode-sidebar-bg);
-  border-top: 1px solid var(--vscode-border);
-  animation: slideDown 0.2s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.details-section {
-  margin-bottom: 16px;
-}
-
-.details-section:last-child {
-  margin-bottom: 0;
-}
-
-.detail-label {
-  font-size: 11px;
-  font-weight: 600;
+.project-description {
+  font-size: 16px;
+  line-height: 1.7;
   color: var(--vscode-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin: 0;
 }
 
 .tech-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.tech-badge {
-  padding: 4px 10px;
-  background: var(--vscode-editor-bg);
+.tech-tag {
+  padding: 6px 16px;
+  background: var(--vscode-sidebar-bg);
   border: 1px solid var(--vscode-border);
-  border-radius: 3px;
-  font-size: 11px;
-  color: var(--vscode-text);
-  font-family: 'Consolas', 'Courier New', monospace;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--vscode-accent);
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.commits-list {
+.tech-tag:hover {
+  background: var(--vscode-accent);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.project-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.action-button.primary {
+  background: var(--vscode-accent);
+  color: #ffffff;
+  border: 2px solid var(--vscode-accent);
+}
+
+.action-button.primary:hover {
+  background: transparent;
+  color: var(--vscode-accent);
+  transform: translateY(-2px);
+}
+
+.action-button.secondary {
+  background: transparent;
+  color: var(--vscode-text);
+  border: 2px solid var(--vscode-border);
+}
+
+.action-button.secondary:hover {
+  background: var(--vscode-border);
+  border-color: var(--vscode-accent);
+  color: var(--vscode-accent);
+  transform: translateY(-2px);
+}
+
+.action-button :deep(svg) {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  max-width: 18px;
+  min-height: 18px;
+  max-height: 18px;
+  display: block;
+}
+
+.project-image-container {
+  position: relative;
+}
+
+.project-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s ease;
+}
+
+.project-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--vscode-accent) 0%, transparent 100%);
+  opacity: 0.1;
+  transition: opacity 0.3s;
+  z-index: 1;
+}
+
+.project-row:hover .project-image {
+  transform: translateY(-8px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+
+.project-row:hover .project-image::before {
+  opacity: 0.2;
+}
+
+.project-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.project-row:hover .project-image img {
+  transform: scale(1.05);
+}
+
+.empty-state {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
 }
 
-.commit-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.commit-dot {
-  color: var(--vscode-git-added);
-  margin-top: 2px;
-}
-
-.commit-dot :deep(svg) {
-  width: 12px;
-  height: 12px;
-}
-
-.commit-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.commit-message {
-  font-size: 12px;
-  color: var(--vscode-text);
-}
-
-.commit-meta {
-  font-size: 11px;
+.empty-icon {
+  width: 64px;
+  height: 64px;
   color: var(--vscode-text-secondary);
+  opacity: 0.4;
+  margin-bottom: 24px;
+}
+
+.empty-icon :deep(svg) {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  max-width: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  display: block;
+}
+
+.empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--vscode-text);
+  margin: 0 0 8px 0;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: var(--vscode-text-secondary);
+  margin: 0;
 }
 
 @media (max-width: 768px) {
-  .status-col,
-  .commits-col,
-  .updated-col {
-    display: none;
+  .projects-content {
+    padding: 40px 20px;
   }
-  
-  .actions-col {
-    width: 60px;
+
+  .projects-list {
+    gap: 80px;
+  }
+
+  .project-row {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .project-row.reverse {
+    direction: ltr;
+  }
+
+  .project-title {
+    font-size: 24px;
+  }
+
+  .project-description {
+    font-size: 14px;
+  }
+
+  .project-actions {
+    flex-direction: column;
+  }
+
+  .action-button {
+    width: 100%;
+  }
+
+  .projects-header {
+    padding: 20px 16px;
+  }
+
+  .header-title {
+    font-size: 20px;
   }
 }
-</style> 
+</style>
